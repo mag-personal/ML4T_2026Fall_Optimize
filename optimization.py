@@ -36,13 +36,57 @@ import pandas as pd
 from util import get_data, plot_data  
 import scipy.optimize as spo		 
 
+def constraint_sum(x): 
+    """
+    stuff
+    """
+    return np.sum(x) - 1.0
 
-def f(x): 
+def f(weighted_stock_value, prices): 
     """
     external function to handle the majority of the work; coninue decribing 
     """
+    normalized_stock_price_2 = prices / prices.iloc[0]	 # normalized stock price
+    print("normalized_stock_price_2")
+    print(normalized_stock_price_2)
 
-    return adr, adr, sddr, sr
+    allocs = normalized_stock_price_2 * weighted_stock_value
+    print("allocs")
+    print(allocs)
+    # portfolio_values = allocs * weighted_stock_value
+
+
+    # position_values = sv * allocated_values
+    # portfolio_value = allocs.sum(axis=1)
+    port_val = allocs.sum(axis=1)
+    print("port_val")
+    print(port_val)
+
+    # something = spo.minimize()
+
+    daily_returns_as_a_percent = (port_val / port_val.shift(1) -1 )
+    print("daily_returns_as_a_percent")
+    print(daily_returns_as_a_percent)
+    daily_returns_as_a_percent.iloc[0] = 0
+    print(daily_returns_as_a_percent)
+
+    # everything above was taken from my work in the analysis.py options assignment
+    adr = daily_returns_as_a_percent.mean()
+    print("adr")
+    print(adr)
+    sddr = daily_returns_as_a_percent.std()
+    print("sddr")
+    print(sddr)
+    cr = port_val[-1] / port_val[0] -1
+    print("cr")
+    print(cr)
+
+    # this was sf: sampline frequency, from analysis.py
+    sr = np.sqrt(252) * (adr/sddr) #
+    print("sr")
+    print(sr)
+
+    return cr, adr, sddr, sr 
   		  	   		 		  		  		  		    	 		 		   		 		  
 # This is the function that will be tested by the autograder  		  	   		 		  		  		  		    	 		 		   		 		  
 # The student must update this code to properly implement the functionality  		  	   		 		  		  		  		    	 		 		   		 		  
@@ -92,16 +136,17 @@ def optimize_portfolio(
         0.001,  		  	   		 		  		  		  		    	 		 		   		 		  
         0.0005,  		  	   		 		  		  		  		    	 		 		   		 		  
         2.1,  		  	   		 		  		  		  		    	 		 		   		 		  
-    ]  # add code here to compute stats  		  	   		 		  		  		  		    	 		 		   		 		  
-  		  	   		 		  		  		  		    	 		 		   		 		  
+    ]  # add code here to compute stats  
+
+	 		  		  		  		    	 		 		   		 		  
     # Get daily portfolio value  	
     #     # everything below until adr was taken from my work in the analysis.py options assignment
 	  	
     # all of this is taken from the 4th, 5th, and or 6th short video from the sharp ratio lecture series.    		 		  		  		  		    	 		 		   		 		  
     # port_val = prices_SPY  # add code here to compute daily portfolio values  		  
-    normalized_stock_price_2 = prices / prices.iloc[0]	 # normalized stock price
-    print("normalized_stock_price_2")
-    print(normalized_stock_price_2)
+    # normalized_stock_price_2 = prices / prices.iloc[0]	 # normalized stock price
+    # print("normalized_stock_price_2")
+    # print(normalized_stock_price_2)
 
     n_stocks = len(prices.columns)
     print("n_stocks")
@@ -109,41 +154,60 @@ def optimize_portfolio(
     weighted_stock_value = [1.0/n_stocks] * n_stocks
     print("weighted_stock_value")
     print(weighted_stock_value)
-    allocs = normalized_stock_price_2 * weighted_stock_value
-    print("allocs")
-    print(allocs)
-    # portfolio_values = allocs * weighted_stock_value
+
+    constraints = {
+        "type": "eq", 
+        "fun": constraint_sum
+    }
+
+    # doing spo.minimize now:
+    ret = spo.minimize(
+        f,
+        weighted_stock_value, 
+        args=(prices,), 
+        bounds = [(0.0, 1.0)] * len(syms), 
+        constraints = constraints, 
+        method = "SLSQP", 
+        options = {"maxiter": 1000}
+    )
+    # below is the original run		  	   		 		  		  		  		    	 		 		   		 		  
+  		  	   	
+
+    # allocs = normalized_stock_price_2 * weighted_stock_value
+    # print("allocs")
+    # print(allocs)
+    # # portfolio_values = allocs * weighted_stock_value
 
 
-    # position_values = sv * allocated_values
-    # portfolio_value = allocs.sum(axis=1)
-    port_val = allocs.sum(axis=1)
-    print("port_val")
-    print(port_val)
+    # # position_values = sv * allocated_values
+    # # portfolio_value = allocs.sum(axis=1)
+    # port_val = allocs.sum(axis=1)
+    # print("port_val")
+    # print(port_val)
 
-    something = spo.minimize()
+    # something = spo.minimize()
 
-    daily_returns_as_a_percent = (port_val / port_val.shift(1) -1 )
-    print("daily_returns_as_a_percent")
-    print(daily_returns_as_a_percent)
-    daily_returns_as_a_percent.iloc[0] = 0
-    print(daily_returns_as_a_percent)
+    # daily_returns_as_a_percent = (port_val / port_val.shift(1) -1 )
+    # print("daily_returns_as_a_percent")
+    # print(daily_returns_as_a_percent)
+    # daily_returns_as_a_percent.iloc[0] = 0
+    # print(daily_returns_as_a_percent)
 
-    # everything above was taken from my work in the analysis.py options assignment
-    adr = daily_returns_as_a_percent.mean()
-    print("adr")
-    print(adr)
-    sddr = daily_returns_as_a_percent.std()
-    print("sddr")
-    print(sddr)
-    cr = port_val[-1] / port_val[0] -1
-    print("cr")
-    print(cr)
+    # # everything above was taken from my work in the analysis.py options assignment
+    # adr = daily_returns_as_a_percent.mean()
+    # print("adr")
+    # print(adr)
+    # sddr = daily_returns_as_a_percent.std()
+    # print("sddr")
+    # print(sddr)
+    # cr = port_val[-1] / port_val[0] -1
+    # print("cr")
+    # print(cr)
 
-    # this was sf: sampline frequency, from analysis.py
-    sr = np.sqrt(252) * (adr/sddr) #
-    print("sr")
-    print(sr)
+    # # this was sf: sampline frequency, from analysis.py
+    # sr = np.sqrt(252) * (adr/sddr) #
+    # print("sr")
+    # print(sr)
   		  	   		 		  		  		  		    	 		 		   		 		  
     # Compare daily portfolio value with SPY using a normalized plot  		  	   		 		  		  		  		    	 		 		   		 		  
     if gen_plot:  		  	   		 		  		  		  		    	 		 		   		 		  
