@@ -178,19 +178,19 @@ def optimize_portfolio(
   		  	   	
     print("ret")
     print(ret)
-    weighted_stock_value = ret.x
-    print("weighted_stock_value")
-    print(weighted_stock_value)
+    # weighted_stock_value = ret.x
+    allocs = ret.x
+    print("allocs")
+    print(allocs)
     # print(ret)
-    allocs = normalized_stock_price_2 * weighted_stock_value
+    weighted_stock_value = normalized_stock_price_2 * allocs
     print("allocs")
     print(allocs)
     # # portfolio_values = allocs * weighted_stock_value
 
-
     # # position_values = sv * allocated_values
     # # portfolio_value = allocs.sum(axis=1)
-    port_val = allocs.sum(axis=1)
+    port_val = weighted_stock_value.sum(axis=1)
     print("port_val")
     print(port_val)
 
@@ -217,14 +217,27 @@ def optimize_portfolio(
     sr = np.sqrt(252) * (adr/sddr) #
     print("sr")
     print(sr)
+
+    # normalize spy for plot below 
+    normalized_spy = prices_SPY / prices_SPY.iloc[0]
   		  	   		 		  		  		  		    	 		 		   		 		  
     # Compare daily portfolio value with SPY using a normalized plot  		  	   		 		  		  		  		    	 		 		   		 		  
     if gen_plot:  		  	   		 		  		  		  		    	 		 		   		 		  
-        # add code to plot here  		  	   		 		  		  		  		    	 		 		   		 		  
+        # add code to plot here 
+        print("Made it here") 		  	   		 		  		  		  		    	 		 		   		 		  
         df_temp = pd.concat(  		  	   		 		  		  		  		    	 		 		   		 		  
-            [port_val, prices_SPY], keys=["Portfolio", "SPY"], axis=1  		  	   		 		  		  		  		    	 		 		   		 		  
+            # [port_val, prices_SPY], keys=["Portfolio", "SPY"], axis=1  		  	   		 		  		  		  		    	 		 		   		 		  
+            [port_val, normalized_spy], keys=["Portfolio", "SPY"], axis=1  		  	   		 		  		  		  		    	 		 		   		 		  
         )  		  	   		 		  		  		  		    	 		 		   		 		  
-        pass  		  	   		 		  		  		  		    	 		 		   		 		  
+        # pass  	
+        ax = df_temp.plot(figsize=(10,6))	
+        ax.set_xlabel("Date")
+        ax.set_ylabel("Normalized Price")
+        ax.set_title("Optimized Portfolio vs SPY")
+        ax.legend()
+        plt.savefig("images/Figure1.png")
+        plt.close()
+          		 		  		  		  		    	 		 		   		 		  
   		  	   		 		  		  		  		    	 		 		   		 		  
     return allocs, cr, adr, sddr, sr  		  	   		 		  		  		  		    	 		 		   		 		  
   		  	   		 		  		  		  		    	 		 		   		 		  
@@ -240,7 +253,8 @@ def test_code():
   		  	   		 		  		  		  		    	 		 		   		 		  
     # Assess the portfolio  		  	   		 		  		  		  		    	 		 		   		 		  
     allocations, cr, adr, sddr, sr = optimize_portfolio(  		  	   		 		  		  		  		    	 		 		   		 		  
-        sd=start_date, ed=end_date, syms=symbols, gen_plot=False  		  	   		 		  		  		  		    	 		 		   		 		  
+        # sd=start_date, ed=end_date, syms=symbols, gen_plot=False  		  	   		 		  		  		  		    	 		 		   		 		  
+        sd=start_date, ed=end_date, syms=symbols, gen_plot=True  		  	   		 		  		  		  		    	 		 		   		 		  
     )  		  	   		 		  		  		  		    	 		 		   		 		  
   		  	   		 		  		  		  		    	 		 		   		 		  
     # Print statistics  		  	   		 		  		  		  		    	 		 		   		 		  
